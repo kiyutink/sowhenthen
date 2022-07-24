@@ -8,6 +8,6 @@ import (
 
 func main() {
 	srv := NewServer(poll.NewMemeoryStorer())
-	srv.Routes()
+	srv.routes()
 	http.ListenAndServe(":80", srv)
 }
