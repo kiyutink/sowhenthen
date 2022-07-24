@@ -1,7 +1,7 @@
 package poll
 
 type Poll struct {
-	Id      int
+	Id      string
 	Title   string
 	Options []string
 }
