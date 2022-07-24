@@ -1,4 +1,4 @@
-package main
+package poll
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-type PollStorer interface {
+type Storer interface {
 	Create(p Poll)
 	Delete(id int)
 	GetOne(id int) Poll
@@ -17,11 +17,11 @@ type PollStorer interface {
 	Dump() interface{}
 }
 
-type PollController struct {
-	storer PollStorer
+type Controller struct {
+	storer Storer
 }
 
-func (pc *PollController) GetMany(w http.ResponseWriter, r *http.Request) {
+func (pc *Controller) GetMany(w http.ResponseWriter, r *http.Request) {
 	polls := pc.storer.GetMany()
 	names := []string{}
 	for _, poll := range polls {
@@ -32,7 +32,7 @@ func (pc *PollController) GetMany(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(pc.storer.Dump())
 }
 
-func (pc *PollController) GetOne(w http.ResponseWriter, r *http.Request) {
+func (pc *Controller) GetOne(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	id, _ := strconv.Atoi(idParam)
 	poll := pc.storer.GetOne(id)
@@ -41,7 +41,7 @@ func (pc *PollController) GetOne(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(pc.storer.Dump())
 }
 
-func (pc *PollController) Post(w http.ResponseWriter, r *http.Request) {
+func (pc *Controller) Post(w http.ResponseWriter, r *http.Request) {
 	pc.storer.Create(Poll{
 		Title: "Just another poll",
 	})
@@ -49,7 +49,7 @@ func (pc *PollController) Post(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(pc.storer.Dump())
 }
 
-func (pc *PollController) Delete(w http.ResponseWriter, r *http.Request) {
+func (pc *Controller) Delete(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "id")
 	id, _ := strconv.Atoi(idParam)
 	pc.storer.Delete(id)
@@ -57,6 +57,6 @@ func (pc *PollController) Delete(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(pc.storer.Dump())
 }
 
-func NewPollController(storer PollStorer) *PollController {
-	return &PollController{storer}
+func NewController(storer Storer) *Controller {
+	return &Controller{storer}
 }

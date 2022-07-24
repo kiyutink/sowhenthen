@@ -1,4 +1,4 @@
-package main
+package poll
 
 type Poll struct {
 	Id      int
