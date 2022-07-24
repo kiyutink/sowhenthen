@@ -21,45 +21,45 @@ type Controller struct {
 	storer Storer
 }
 
-func (pc *Controller) HandleGetMany() http.HandlerFunc {
+func (c *Controller) HandleGetMany() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		polls, _ := pc.storer.GetMany(context.Background()) // TODO: Unignore error
+		polls, _ := c.storer.GetMany(context.Background()) // TODO: Unignore error
 		names := []string{}
 		for _, poll := range polls {
 			names = append(names, poll.Id)
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(strings.Join(names, ", ")))
-		fmt.Println(pc.storer.Dump())
+		fmt.Println(c.storer.Dump())
 	}
 }
 
-func (pc *Controller) HandleGetOne() http.HandlerFunc {
+func (c *Controller) HandleGetOne() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		poll, _ := pc.storer.GetOne(context.Background(), id) // TODO: Unignore error
+		poll, _ := c.storer.GetOne(context.Background(), id) // TODO: Unignore error
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(poll.Title))
-		fmt.Println(pc.storer.Dump())
+		fmt.Println(c.storer.Dump())
 	}
 }
 
-func (pc *Controller) HandlePost() http.HandlerFunc {
+func (c *Controller) HandlePost() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		pc.storer.Create(context.Background(), Poll{ // TODO: Unignore error, use returned Poll
+		c.storer.Create(context.Background(), Poll{ // TODO: Unignore error, use returned Poll
 			Title: "Just another poll",
 		})
 		w.WriteHeader(http.StatusCreated)
-		fmt.Println(pc.storer.Dump())
+		fmt.Println(c.storer.Dump())
 	}
 }
 
-func (pc *Controller) HandleDelete() http.HandlerFunc {
+func (c *Controller) HandleDelete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		pc.storer.Delete(context.Background(), id)
+		c.storer.Delete(context.Background(), id)
 		w.WriteHeader(http.StatusOK)
-		fmt.Println(pc.storer.Dump())
+		fmt.Println(c.storer.Dump())
 	}
 }
 
