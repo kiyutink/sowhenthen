@@ -33,14 +33,6 @@ func (ms *MemoryStorer) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-func (ms *MemoryStorer) GetMany(ctx context.Context) ([]Poll, error) {
-	polls := []Poll{}
-	for _, poll := range ms.storage {
-		polls = append(polls, poll)
-	}
-	return polls, nil
-}
-
 func (ms *MemoryStorer) Dump() interface{} {
 	return ms.storage
 }

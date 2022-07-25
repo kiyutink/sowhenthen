@@ -2,9 +2,10 @@ package poll
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -13,7 +14,6 @@ type Storer interface {
 	Create(ctx context.Context, p Poll) (Poll, error)
 	Delete(ctx context.Context, id string) error
 	GetOne(ctx context.Context, id string) (Poll, error)
-	GetMany(ctx context.Context) ([]Poll, error)
 	Dump() interface{}
 }
 
@@ -21,36 +21,47 @@ type Controller struct {
 	storer Storer
 }
 
-func (c *Controller) HandleGetMany() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		polls, _ := c.storer.GetMany(context.Background()) // TODO: Unignore error
-		names := []string{}
-		for _, poll := range polls {
-			names = append(names, poll.Id)
-		}
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(strings.Join(names, ", ")))
-		fmt.Println(c.storer.Dump())
-	}
-}
-
 func (c *Controller) HandleGetOne() http.HandlerFunc {
+	type response struct {
+		Id      string   `json:"id"`
+		Title   string   `json:"title"`
+		Options []string `json:"options"`
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		poll, _ := c.storer.GetOne(context.Background(), id) // TODO: Unignore error
+		poll, err := c.storer.GetOne(context.Background(), id)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(poll.Title))
+		json.NewEncoder(w).Encode(response(poll))
 		fmt.Println(c.storer.Dump())
 	}
 }
 
 func (c *Controller) HandlePost() http.HandlerFunc {
+	type response struct {
+		Id      string   `json:"id"`
+		Title   string   `json:"title"`
+		Options []string `json:"options"`
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		c.storer.Create(context.Background(), Poll{ // TODO: Unignore error, use returned Poll
-			Title: "Just another poll",
+		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+		defer cancel()
+		poll, err := c.storer.Create(ctx, Poll{
+			Title:   "Just another poll",
+			Options: []string{"Option 1", "Option 2"},
 		})
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
 		w.WriteHeader(http.StatusCreated)
-		fmt.Println(c.storer.Dump())
+
+		json.NewEncoder(w).Encode(response(poll))
 	}
 }
 
