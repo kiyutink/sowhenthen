@@ -12,7 +12,6 @@ import (
 
 type Storer interface {
 	Create(ctx context.Context, p Poll) (Poll, error)
-	Delete(ctx context.Context, id string) error
 	GetOne(ctx context.Context, id string) (Poll, error)
 	Dump() interface{}
 }
@@ -62,15 +61,6 @@ func (c *Controller) HandlePost() http.HandlerFunc {
 		w.WriteHeader(http.StatusCreated)
 
 		json.NewEncoder(w).Encode(response(poll))
-	}
-}
-
-func (c *Controller) HandleDelete() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		id := chi.URLParam(r, "id")
-		c.storer.Delete(context.Background(), id)
-		w.WriteHeader(http.StatusOK)
-		fmt.Println(c.storer.Dump())
 	}
 }
 

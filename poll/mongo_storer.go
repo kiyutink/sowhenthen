@@ -41,7 +41,7 @@ func (ms *MongoStorer) GetOne(ctx context.Context, id string) (Poll, error) {
 	}
 
 	pm := mongoModel{}
-	res.Decode(&pm)
+	err = res.Decode(&pm)
 	if err != nil {
 		return Poll{}, fmt.Errorf("error decoding poll: %w", err)
 	}
@@ -67,14 +67,6 @@ func (ms *MongoStorer) Create(ctx context.Context, p Poll) (Poll, error) {
 	}
 	p.Id = insertRes.InsertedID.(primitive.ObjectID).Hex()
 	return p, nil
-}
-
-func (ms *MongoStorer) Delete(ctx context.Context, id string) error {
-	_, err := ms.collection.DeleteOne(ctx, bson.M{"_id": id})
-	if err != nil {
-		return fmt.Errorf("error deleting poll: %w", err)
-	}
-	return nil
 }
 
 func (ms *MongoStorer) Dump() interface{} {

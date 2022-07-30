@@ -28,11 +28,6 @@ func (ms *MemoryStorer) Create(ctx context.Context, p Poll) (Poll, error) {
 	return p, nil
 }
 
-func (ms *MemoryStorer) Delete(ctx context.Context, id string) error {
-	delete(ms.storage, id)
-	return nil
-}
-
 func (ms *MemoryStorer) Dump() interface{} {
 	return ms.storage
 }
