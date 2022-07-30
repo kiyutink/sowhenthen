@@ -40,18 +40,32 @@ func (c *Controller) HandleGetOne() http.HandlerFunc {
 }
 
 func (c *Controller) HandlePost() http.HandlerFunc {
+	type request struct {
+		Title   string   `json:"title"`
+		Options []string `json:"options"`
+	}
+
 	type response struct {
 		Id      string   `json:"id"`
 		Title   string   `json:"title"`
 		Options []string `json:"options"`
 	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 		defer cancel()
-		poll, err := c.storer.Create(ctx, Poll{
-			Title:   "Just another poll",
-			Options: []string{"Option 1", "Option 2"},
-		})
+		req := request{}
+		err := json.NewDecoder(r.Body).Decode(&req)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(fmt.Sprintf("error decoding json: %v", err)))
+		}
+
+		p := Poll{}
+		p.Options = req.Options
+		p.Title = req.Title
+
+		poll, err := c.storer.Create(ctx, p)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
