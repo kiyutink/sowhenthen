@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -44,4 +45,34 @@ func (ms *MongoStorer) Create(ctx context.Context, vote Vote) (Vote, error) {
 	}
 
 	return vote, nil
+}
+
+func (ms *MongoStorer) GetMany(ctx context.Context, pollId string) ([]Vote, error) {
+	pollIdObjId, err := primitive.ObjectIDFromHex(pollId)
+	if err != nil {
+		return nil, fmt.Errorf("error creating objectId: %w", err)
+	}
+	res, err := ms.collection.Find(ctx, bson.M{"poll_id": pollIdObjId})
+	if err != nil {
+		return nil, fmt.Errorf("error getting votes: %w", err)
+	}
+
+	vm := []mongoModel{{}}
+	err = res.All(ctx, &vm)
+	if err != nil {
+		return nil, fmt.Errorf("error getting votes: %w", err)
+	}
+
+	votes := make([]Vote, len(vm))
+
+	for i, vote := range vm {
+		v := Vote{
+			PollId:    vote.PollId.Hex(),
+			Option:    vote.Option,
+			VoterName: vote.VoterName,
+		}
+		votes[i] = v
+	}
+
+	return votes, nil
 }

@@ -5,10 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/go-chi/chi/v5"
 )
 
 type Storer interface {
 	Create(ctx context.Context, vote Vote) (Vote, error)
+	GetMany(ctx context.Context, pollId string) ([]Vote, error)
 }
 
 type Controller struct {
@@ -21,12 +24,18 @@ func NewController(storer Storer) *Controller {
 
 func (c *Controller) HandlePost() http.HandlerFunc {
 	type request struct {
+		Option    string `json:"option"`
+		VoterName string `json:"voter_name"`
+	}
+
+	type response struct {
 		PollId    string `json:"poll_id"`
 		Option    string `json:"option"`
 		VoterName string `json:"voter_name"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		pollId := chi.URLParam(r, "pollId")
 		req := request{}
 		err := json.NewDecoder(r.Body).Decode(&req)
 		if err != nil {
@@ -35,7 +44,10 @@ func (c *Controller) HandlePost() http.HandlerFunc {
 			return
 		}
 
-		vote := Vote(req)
+		vote := Vote{}
+		vote.PollId = pollId
+		vote.Option = req.Option
+		vote.VoterName = req.VoterName
 		_, err = c.storer.Create(context.Background(), vote)
 
 		if err != nil {
@@ -45,13 +57,34 @@ func (c *Controller) HandlePost() http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusCreated)
-		json.NewEncoder(w).Encode(vote)
+		json.NewEncoder(w).Encode(response(vote))
 	}
 }
 
-func (c *Controller) HandleGetOne() http.HandlerFunc {
+func (c *Controller) HandleGetMany() http.HandlerFunc {
+	type response []struct {
+		PollId    string `json:"poll_id"`
+		Option    string `json:"option"`
+		VoterName string `json:"voter_name"`
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
+		pollId := chi.URLParam(r, "pollId")
+		votes, err := c.storer.GetMany(context.TODO(), pollId)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte(err.Error()))
+			return
+		}
+
+		res := make(response, len(votes))
+		for i, vote := range votes {
+			res[i].Option = vote.Option
+			res[i].PollId = vote.PollId
+			res[i].VoterName = vote.VoterName
+		}
+
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("here you'll see votes"))
+		json.NewEncoder(w).Encode(res)
 	}
 }
