@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/kiyutink/sowhenthen/poll"
+	"github.com/kiyutink/sowhenthen/vote"
 )
 
 func main() {
@@ -14,7 +15,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	srv := NewServer(poll.NewMongoStorer(mongoClient))
+	srv := NewServer(poll.NewMongoStorer(mongoClient), vote.NewMongoStorer(mongoClient))
 	srv.routes()
 	fmt.Println("listening on localhost:8001")
 	err = http.ListenAndServe("localhost:8001", srv)
