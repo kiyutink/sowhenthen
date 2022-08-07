@@ -20,16 +20,16 @@ type mongoModel struct {
 	Options []string           `bson:"options"`
 }
 
-type MongoStorer struct {
+type MongoStorage struct {
 	client     *mongo.Client
 	collection *mongo.Collection
 }
 
-func NewMongoStorer(client *mongo.Client) *MongoStorer {
-	return &MongoStorer{client, client.Database(databaseName).Collection(collectionName)}
+func NewMongoStorage(client *mongo.Client) *MongoStorage {
+	return &MongoStorage{client, client.Database(databaseName).Collection(collectionName)}
 }
 
-func (ms *MongoStorer) GetOne(ctx context.Context, id string) (Poll, error) {
+func (ms *MongoStorage) GetOne(ctx context.Context, id string) (Poll, error) {
 	objId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return Poll{}, fmt.Errorf("invalid id: %w", err)
@@ -54,7 +54,7 @@ func (ms *MongoStorer) GetOne(ctx context.Context, id string) (Poll, error) {
 	return poll, nil
 }
 
-func (ms *MongoStorer) Create(ctx context.Context, p Poll) (Poll, error) {
+func (ms *MongoStorage) Create(ctx context.Context, p Poll) (Poll, error) {
 	pm := mongoModel{
 		Id:      primitive.NewObjectID(),
 		Title:   p.Title,
@@ -69,6 +69,6 @@ func (ms *MongoStorer) Create(ctx context.Context, p Poll) (Poll, error) {
 	return p, nil
 }
 
-func (ms *MongoStorer) Dump() interface{} {
+func (ms *MongoStorage) Dump() interface{} {
 	return nil
 }

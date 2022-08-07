@@ -1,4 +1,4 @@
-package poll
+package main
 
 import (
 	"context"
@@ -8,19 +8,10 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/kiyutink/sowhenthen/poll"
 )
 
-type Storer interface {
-	Create(ctx context.Context, p Poll) (Poll, error)
-	GetOne(ctx context.Context, id string) (Poll, error)
-	Dump() interface{}
-}
-
-type Controller struct {
-	storer Storer
-}
-
-func (c *Controller) HandleGetOne() http.HandlerFunc {
+func (c *Controller) handlePollsGetOne() http.HandlerFunc {
 	type response struct {
 		Id      string   `json:"id"`
 		Title   string   `json:"title"`
@@ -28,18 +19,17 @@ func (c *Controller) HandleGetOne() http.HandlerFunc {
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		poll, err := c.storer.GetOne(context.Background(), id)
+		poll, err := c.storage.poll.GetOne(context.Background(), id)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
 		}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(response(poll))
-		fmt.Println(c.storer.Dump())
 	}
 }
 
-func (c *Controller) HandlePost() http.HandlerFunc {
+func (c *Controller) handlePollsCreateOne() http.HandlerFunc {
 	type request struct {
 		Title   string   `json:"title"`
 		Options []string `json:"options"`
@@ -61,11 +51,11 @@ func (c *Controller) HandlePost() http.HandlerFunc {
 			w.Write([]byte(fmt.Sprintf("error decoding json: %v", err)))
 		}
 
-		p := Poll{}
+		p := poll.Poll{}
 		p.Options = req.Options
 		p.Title = req.Title
 
-		poll, err := c.storer.Create(ctx, p)
+		poll, err := c.storage.poll.Create(ctx, p)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))
@@ -76,8 +66,4 @@ func (c *Controller) HandlePost() http.HandlerFunc {
 
 		json.NewEncoder(w).Encode(response(poll))
 	}
-}
-
-func NewController(storer Storer) *Controller {
-	return &Controller{storer}
 }

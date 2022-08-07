@@ -1,4 +1,4 @@
-package vote
+package main
 
 import (
 	"context"
@@ -7,31 +7,19 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/kiyutink/sowhenthen/vote"
 )
 
-type Storer interface {
-	Create(ctx context.Context, vote Vote) (Vote, error)
-	GetMany(ctx context.Context, pollId string) ([]Vote, error)
-}
-
-type Controller struct {
-	storer Storer
-}
-
-func NewController(storer Storer) *Controller {
-	return &Controller{storer}
-}
-
-func (c *Controller) HandlePost() http.HandlerFunc {
+func (c *Controller) handleVotesCreateOne() http.HandlerFunc {
 	type request struct {
-		Option    string `json:"option"`
-		VoterName string `json:"voter_name"`
+		Options   []string `json:"options"`
+		VoterName string   `json:"voterName"`
 	}
 
 	type response struct {
-		PollId    string `json:"poll_id"`
-		Option    string `json:"option"`
-		VoterName string `json:"voter_name"`
+		PollId    string   `json:"pollId"`
+		Options   []string `json:"options"`
+		VoterName string   `json:"voterName"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -44,11 +32,11 @@ func (c *Controller) HandlePost() http.HandlerFunc {
 			return
 		}
 
-		vote := Vote{}
+		vote := vote.Vote{}
 		vote.PollId = pollId
-		vote.Option = req.Option
+		vote.Options = req.Options
 		vote.VoterName = req.VoterName
-		_, err = c.storer.Create(context.Background(), vote)
+		_, err = c.storage.vote.Create(context.Background(), vote)
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -61,16 +49,16 @@ func (c *Controller) HandlePost() http.HandlerFunc {
 	}
 }
 
-func (c *Controller) HandleGetMany() http.HandlerFunc {
+func (c *Controller) handleVotesGetMany() http.HandlerFunc {
 	type response []struct {
-		PollId    string `json:"poll_id"`
-		Option    string `json:"option"`
-		VoterName string `json:"voter_name"`
+		PollId    string   `json:"pollId"`
+		Options   []string `json:"options"`
+		VoterName string   `json:"voterName"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		pollId := chi.URLParam(r, "pollId")
-		votes, err := c.storer.GetMany(context.TODO(), pollId)
+		votes, err := c.storage.vote.GetMany(context.TODO(), pollId)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
@@ -79,7 +67,7 @@ func (c *Controller) HandleGetMany() http.HandlerFunc {
 
 		res := make(response, len(votes))
 		for i, vote := range votes {
-			res[i].Option = vote.Option
+			res[i].Options = vote.Options
 			res[i].PollId = vote.PollId
 			res[i].VoterName = vote.VoterName
 		}

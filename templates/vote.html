@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vote</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.css"
+    />
+  </head>
+  <body>
+    <div x-data="main">
+      <h1 x-text="poll.title"></h1>
+      <template x-if="votes.length > 0">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <template x-for="option in poll.options">
+                <th x-text="option"></th>
+              </template>
+            </tr>
+          </thead>
+          <tbody>
+            <template x-for="vote in votes">
+              <tr>
+                <td x-text="vote.voterName"></td>
+                <template x-for="option in poll.options">
+                  <td>
+                    <template x-if="vote.options.includes(option)">
+                      <span>✅</span>
+                    </template>
+                    <template x-if="!vote.options.includes(option)">
+                      <span>❌</span>
+                    </template>
+                  </td>
+                </template>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </template>
+
+      <hr />
+      <form @submit="$event.preventDefault(); submitVote(name, options)">
+        <h2>Add vote</h2>
+        <input type="text" placeholder="Your name" x-model="name" />
+        <template x-for="option in poll.options">
+          <div>
+            <input
+              type="checkbox"
+              :id="option"
+              x-model="options"
+              :value="option"
+            />
+            <label :for="option" x-text="option"></label>
+          </div>
+        </template>
+        <button :disabled="!name">Submit</button>
+      </form>
+    </div>
+    <script src="//unpkg.com/alpinejs" defer></script>
+
+    <script>
+      const pollId = window.location.pathname.substr(1);
+      document.addEventListener("alpine:init", () => {
+        Alpine.data("main", () => ({
+          name: "",
+          options: [],
+          poll: {},
+          votes: [],
+          init() {
+            this.fetchPoll();
+            this.fetchVotes();
+          },
+          async fetchPoll() {
+            const res = await fetch(`/api/polls/${pollId}`);
+            const poll = await res.json();
+            this.poll = poll;
+          },
+          async fetchVotes() {
+            const res = await fetch(`/api/polls/${pollId}/votes`);
+            const votes = await res.json();
+            this.votes = votes;
+          },
+          async submitVote(voterName, options) {
+            const res = await fetch(`/api/polls/${pollId}/votes`, {
+              method: "POST",
+              body: JSON.stringify({
+                voterName,
+                options,
+              }),
+            });
+            const json = await res.json();
+            this.votes.push(json);
+            this.name = "";
+            this.options = [];
+          },
+        }));
+      });
+    </script>
+  </body>
+</html>

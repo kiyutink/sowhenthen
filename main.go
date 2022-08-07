@@ -15,7 +15,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	srv := NewServer(poll.NewMongoStorer(mongoClient), vote.NewMongoStorer(mongoClient))
+	srv := NewServer(poll.NewMongoStorage(mongoClient), vote.NewMongoStorage(mongoClient))
 	srv.routes()
 	fmt.Println("listening on localhost:8001")
 	err = http.ListenAndServe("localhost:8001", srv)

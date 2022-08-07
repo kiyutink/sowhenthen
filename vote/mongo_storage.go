@@ -15,28 +15,28 @@ const (
 )
 
 type mongoModel struct {
-	PollId    primitive.ObjectID `bson:"poll_id"`
-	Option    string             `bson:"option"`
-	VoterName string             `bson:"voter_name"`
+	PollId    primitive.ObjectID `bson:"pollId"`
+	Options   []string           `bson:"options"`
+	VoterName string             `bson:"voterName"`
 }
 
-type MongoStorer struct {
+type MongoStorage struct {
 	client     *mongo.Client
 	collection *mongo.Collection
 }
 
-func NewMongoStorer(client *mongo.Client) *MongoStorer {
-	return &MongoStorer{client, client.Database(databaseName).Collection(collectionName)}
+func NewMongoStorage(client *mongo.Client) *MongoStorage {
+	return &MongoStorage{client, client.Database(databaseName).Collection(collectionName)}
 }
 
-func (ms *MongoStorer) Create(ctx context.Context, vote Vote) (Vote, error) {
+func (ms *MongoStorage) Create(ctx context.Context, vote Vote) (Vote, error) {
 	pollIdObjId, err := primitive.ObjectIDFromHex(vote.PollId)
 	if err != nil {
 		return Vote{}, fmt.Errorf("error converting pollId to objectId: %w", err)
 	}
 	model := mongoModel{
 		PollId:    pollIdObjId,
-		Option:    vote.Option,
+		Options:   vote.Options,
 		VoterName: vote.VoterName,
 	}
 	_, err = ms.collection.InsertOne(ctx, model)
@@ -47,12 +47,12 @@ func (ms *MongoStorer) Create(ctx context.Context, vote Vote) (Vote, error) {
 	return vote, nil
 }
 
-func (ms *MongoStorer) GetMany(ctx context.Context, pollId string) ([]Vote, error) {
+func (ms *MongoStorage) GetMany(ctx context.Context, pollId string) ([]Vote, error) {
 	pollIdObjId, err := primitive.ObjectIDFromHex(pollId)
 	if err != nil {
 		return nil, fmt.Errorf("error creating objectId: %w", err)
 	}
-	res, err := ms.collection.Find(ctx, bson.M{"poll_id": pollIdObjId})
+	res, err := ms.collection.Find(ctx, bson.M{"pollId": pollIdObjId})
 	if err != nil {
 		return nil, fmt.Errorf("error getting votes: %w", err)
 	}
@@ -68,7 +68,7 @@ func (ms *MongoStorer) GetMany(ctx context.Context, pollId string) ([]Vote, erro
 	for i, vote := range vm {
 		v := Vote{
 			PollId:    vote.PollId.Hex(),
-			Option:    vote.Option,
+			Options:   vote.Options,
 			VoterName: vote.VoterName,
 		}
 		votes[i] = v

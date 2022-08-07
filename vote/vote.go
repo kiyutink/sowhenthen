@@ -2,6 +2,6 @@ package vote
 
 type Vote struct {
 	PollId    string
-	Option    string
+	Options   []string
 	VoterName string
 }
