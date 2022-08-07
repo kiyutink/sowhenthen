@@ -7,6 +7,7 @@ This is a copy (with some adjustments) of [jawanndenn](https://github.com/hartwo
 - [GoDotEnv](https://github.com/joho/godotenv)
 - [Air](https://github.com/cosmtrek/air)
 - [JavaScript](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+- [Alpine.js](https://github.com/alpinejs/alpine)
 - [MongoDB](https://www.mongodb.com/)
 
 Compared to [jawanndenn](https://github.com/hartwork/jawanndenn), **sowhenthen** only supports 2 fields in the setup JSON:
