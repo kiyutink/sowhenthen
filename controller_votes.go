@@ -36,7 +36,9 @@ func (c *Controller) handleVotesCreateOne() http.HandlerFunc {
 		vote.PollId = pollId
 		vote.Options = req.Options
 		vote.VoterName = req.VoterName
-		_, err = c.storage.vote.Create(context.Background(), vote)
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		_, err = c.storage.vote.Create(ctx, vote)
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -58,7 +60,9 @@ func (c *Controller) handleVotesGetMany() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		pollId := chi.URLParam(r, "pollId")
-		votes, err := c.storage.vote.GetMany(context.TODO(), pollId)
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		votes, err := c.storage.vote.GetMany(ctx, pollId)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))

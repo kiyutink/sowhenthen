@@ -19,7 +19,9 @@ func (c *Controller) handlePollsGetOne() http.HandlerFunc {
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := chi.URLParam(r, "id")
-		poll, err := c.storage.poll.GetOne(context.Background(), id)
+		ctx, cancel := context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+		poll, err := c.storage.poll.GetOne(ctx, id)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))

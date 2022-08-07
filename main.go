@@ -4,10 +4,13 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/kiyutink/sowhenthen/poll"
 	"github.com/kiyutink/sowhenthen/vote"
 )
+
+const timeout = time.Second * 30
 
 func main() {
 	mongoClient, err := newMongoClient("mongodb://localhost:27017")
