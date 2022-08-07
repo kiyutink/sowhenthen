@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/kiyutink/sowhenthen/entities"
+	"github.com/kiyutink/sowhenthen/storage"
 )
 
 func (c *Controller) handlePollsGetOne() http.HandlerFunc {
@@ -23,8 +24,14 @@ func (c *Controller) handlePollsGetOne() http.HandlerFunc {
 		defer cancel()
 		poll, err := c.storage.Poll.GetOne(ctx, id)
 		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
+			switch err.(type) {
+			case *storage.NotFoundError:
+				w.WriteHeader(http.StatusNotFound)
+			default:
+				w.WriteHeader(http.StatusInternalServerError)
+			}
 			w.Write([]byte(err.Error()))
+			return
 		}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(response(poll))

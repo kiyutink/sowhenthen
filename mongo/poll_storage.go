@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/kiyutink/sowhenthen/entities"
+	"github.com/kiyutink/sowhenthen/storage"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -28,8 +29,9 @@ func newPolLStorage(client *mongo.Client) *pollStorage {
 func (ps *pollStorage) GetOne(ctx context.Context, id string) (entities.Poll, error) {
 	objId, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return entities.Poll{}, fmt.Errorf("invalid id: %w", err)
+		return entities.Poll{}, &storage.InvalidRequestError{Err: err, Message: "invalid objectId"}
 	}
+
 	res := ps.collection.FindOne(ctx, bson.M{"_id": objId})
 	err = res.Err()
 	if err != nil {

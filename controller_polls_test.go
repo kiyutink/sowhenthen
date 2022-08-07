@@ -25,7 +25,7 @@ func (tps *testPollStorage) Create(ctx context.Context, p entities.Poll) (entiti
 
 func (tps *testPollStorage) GetOne(ctx context.Context, id string) (entities.Poll, error) {
 	if id == "non-existent-poll" {
-		return entities.Poll{}, errors.New("poll doesn't exist")
+		return entities.Poll{}, &storage.NotFoundError{Identifier: id, Err: errors.New("poll doesn't exist")}
 	}
 	return entities.Poll{
 		Id:      "test-id",
