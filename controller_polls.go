@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/kiyutink/sowhenthen/poll"
+	"github.com/kiyutink/sowhenthen/entities"
 )
 
 func (c *Controller) handlePollsGetOne() http.HandlerFunc {
@@ -21,7 +21,7 @@ func (c *Controller) handlePollsGetOne() http.HandlerFunc {
 		id := chi.URLParam(r, "id")
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
-		poll, err := c.storage.poll.GetOne(ctx, id)
+		poll, err := c.storage.Poll.GetOne(ctx, id)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
@@ -53,11 +53,11 @@ func (c *Controller) handlePollsCreateOne() http.HandlerFunc {
 			w.Write([]byte(fmt.Sprintf("error decoding json: %v", err)))
 		}
 
-		p := poll.Poll{}
+		p := entities.Poll{}
 		p.Options = req.Options
 		p.Title = req.Title
 
-		poll, err := c.storage.poll.Create(ctx, p)
+		poll, err := c.storage.Poll.Create(ctx, p)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(err.Error()))

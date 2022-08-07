@@ -1,4 +1,4 @@
-package poll
+package entities
 
 type Poll struct {
 	Id      string

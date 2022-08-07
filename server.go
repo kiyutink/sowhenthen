@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/kiyutink/sowhenthen/storage"
 )
 
 type Server struct {
@@ -15,9 +16,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.router.ServeHTTP(w, r)
 }
 
-func NewServer(pollStorage PollStorage, voteStorage VoteStorage) *Server {
+func NewServer(s storage.Storage) *Server {
 	return &Server{
-		controller: NewController(pollStorage, voteStorage),
+		controller: newController(s),
 		router:     chi.NewRouter(),
 	}
 }

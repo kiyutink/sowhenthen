@@ -7,7 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/kiyutink/sowhenthen/vote"
+	"github.com/kiyutink/sowhenthen/entities"
 )
 
 func (c *Controller) handleVotesCreateOne() http.HandlerFunc {
@@ -32,13 +32,13 @@ func (c *Controller) handleVotesCreateOne() http.HandlerFunc {
 			return
 		}
 
-		vote := vote.Vote{}
+		vote := entities.Vote{}
 		vote.PollId = pollId
 		vote.Options = req.Options
 		vote.VoterName = req.VoterName
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
-		_, err = c.storage.vote.Create(ctx, vote)
+		_, err = c.storage.Vote.Create(ctx, vote)
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -62,7 +62,7 @@ func (c *Controller) handleVotesGetMany() http.HandlerFunc {
 		pollId := chi.URLParam(r, "pollId")
 		ctx, cancel := context.WithTimeout(context.Background(), timeout)
 		defer cancel()
-		votes, err := c.storage.vote.GetMany(ctx, pollId)
+		votes, err := c.storage.Vote.GetMany(ctx, pollId)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))

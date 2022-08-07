@@ -8,11 +8,19 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"github.com/kiyutink/sowhenthen/poll"
-	"github.com/kiyutink/sowhenthen/vote"
+	"github.com/kiyutink/sowhenthen/mongo"
+	mongoDB "go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const timeout = time.Second * 30
+
+func newMongoClient(url string) (*mongoDB.Client, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*30)
+	defer cancel()
+	client, err := mongoDB.Connect(ctx, options.Client().ApplyURI(url))
+	return client, err
+}
 
 func main() {
 	err := godotenv.Load()
@@ -25,7 +33,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	srv := NewServer(poll.NewMongoStorage(mongoClient), vote.NewMongoStorage(mongoClient))
+	srv := NewServer(mongo.NewStorage(mongoClient))
 	srv.routes()
 	socket := fmt.Sprintf("%v:%v", os.Getenv("HOST"), os.Getenv("PORT"))
 	fmt.Printf("server listening on socket %v\n", socket)

@@ -1,4 +1,4 @@
-package vote
+package entities
 
 type Vote struct {
 	PollId    string

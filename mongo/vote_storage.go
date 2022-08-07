@@ -1,53 +1,49 @@
-package vote
+package mongo
 
 import (
 	"context"
 	"fmt"
 
+	"github.com/kiyutink/sowhenthen/entities"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const (
-	databaseName   = "sowhenthen"
-	collectionName = "votes"
-)
-
-type mongoModel struct {
+type voteModel struct {
 	PollId    primitive.ObjectID `bson:"pollId"`
 	Options   []string           `bson:"options"`
 	VoterName string             `bson:"voterName"`
 }
 
-type MongoStorage struct {
+type voteStorage struct {
 	client     *mongo.Client
 	collection *mongo.Collection
 }
 
-func NewMongoStorage(client *mongo.Client) *MongoStorage {
-	return &MongoStorage{client, client.Database(databaseName).Collection(collectionName)}
+func newVoteStorage(client *mongo.Client) *voteStorage {
+	return &voteStorage{client, client.Database(databaseName).Collection(votesCollectionName)}
 }
 
-func (ms *MongoStorage) Create(ctx context.Context, vote Vote) (Vote, error) {
+func (ms *voteStorage) Create(ctx context.Context, vote entities.Vote) (entities.Vote, error) {
 	pollIdObjId, err := primitive.ObjectIDFromHex(vote.PollId)
 	if err != nil {
-		return Vote{}, fmt.Errorf("error converting pollId to objectId: %w", err)
+		return entities.Vote{}, fmt.Errorf("error converting pollId to objectId: %w", err)
 	}
-	model := mongoModel{
+	model := voteModel{
 		PollId:    pollIdObjId,
 		Options:   vote.Options,
 		VoterName: vote.VoterName,
 	}
 	_, err = ms.collection.InsertOne(ctx, model)
 	if err != nil {
-		return Vote{}, fmt.Errorf("error saving vote: %w", err)
+		return entities.Vote{}, fmt.Errorf("error saving vote: %w", err)
 	}
 
 	return vote, nil
 }
 
-func (ms *MongoStorage) GetMany(ctx context.Context, pollId string) ([]Vote, error) {
+func (ms *voteStorage) GetMany(ctx context.Context, pollId string) ([]entities.Vote, error) {
 	pollIdObjId, err := primitive.ObjectIDFromHex(pollId)
 	if err != nil {
 		return nil, fmt.Errorf("error creating objectId: %w", err)
@@ -57,16 +53,16 @@ func (ms *MongoStorage) GetMany(ctx context.Context, pollId string) ([]Vote, err
 		return nil, fmt.Errorf("error getting votes: %w", err)
 	}
 
-	vm := []mongoModel{{}}
+	vm := []voteModel{{}}
 	err = res.All(ctx, &vm)
 	if err != nil {
 		return nil, fmt.Errorf("error getting votes: %w", err)
 	}
 
-	votes := make([]Vote, len(vm))
+	votes := make([]entities.Vote, len(vm))
 
 	for i, vote := range vm {
-		v := Vote{
+		v := entities.Vote{
 			PollId:    vote.PollId.Hex(),
 			Options:   vote.Options,
 			VoterName: vote.VoterName,
