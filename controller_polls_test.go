@@ -68,11 +68,6 @@ func TestHandlePollsGetOne(t *testing.T) {
 }
 
 func TestHandlePollsCreateOne(t *testing.T) {
-	type request struct {
-		Title   string   `json:"title"`
-		Options []string `json:"options"`
-	}
-
 	c := newTestController()
 
 	tests := []struct {
