@@ -30,13 +30,9 @@ func (tps *testPollStorage) GetOne(ctx context.Context, id string) (entities.Pol
 	}
 	return entities.Poll{
 		Id:      "test-id",
-		Options: []string{"test-option"},
+		Options: []string{"test-option-1", "test-option-2"},
 		Title:   "test-title",
 	}, nil
-}
-
-type testVoteStorage struct {
-	storage.Vote
 }
 
 func newTestController() *Controller {

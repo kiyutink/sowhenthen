@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/kiyutink/sowhenthen/entities"
+	"github.com/kiyutink/sowhenthen/storage"
 )
 
 func (c *Controller) handleVotesCreateOne() http.HandlerFunc {
@@ -64,6 +66,12 @@ func (c *Controller) handleVotesGetMany() http.HandlerFunc {
 		defer cancel()
 		votes, err := c.storage.Vote.GetMany(ctx, pollId)
 		if err != nil {
+
+			if notFoundErr := new(storage.NotFoundError); errors.As(err, &notFoundErr) {
+				w.WriteHeader(http.StatusNotFound)
+				w.Write([]byte(err.Error()))
+				return
+			}
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte(err.Error()))
 			return
