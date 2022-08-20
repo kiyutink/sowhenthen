@@ -58,6 +58,19 @@ func (c *Controller) handlePollsCreateOne() http.HandlerFunc {
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(fmt.Sprintf("error decoding json: %v", err)))
+			return
+		}
+
+		if len(req.Options) == 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("at least one option is required"))
+			return
+		}
+
+		if req.Title == "" {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("title can not be empty"))
+			return
 		}
 
 		p := entities.Poll{}

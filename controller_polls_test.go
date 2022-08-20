@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
@@ -64,8 +65,56 @@ func TestHandlePollsGetOne(t *testing.T) {
 		w := httptest.NewRecorder()
 
 		c.handlePollsGetOne()(w, r)
-		if tt.expectedStatus != w.Code {
+		if tt.expectedStatus != w.Result().StatusCode {
 			t.Errorf("expected response status code to be %v, instead got %v", tt.expectedStatus, w.Code)
+		}
+	}
+}
+
+func TestHandlePollsCreateOne(t *testing.T) {
+	type request struct {
+		Title   string   `json:"title"`
+		Options []string `json:"options"`
+	}
+
+	c := newTestController()
+
+	tests := []struct {
+		requestBody    string
+		expectedStatus int
+	}{
+		{
+			`{ "title": "test", "options": ["option1"] }`,
+			http.StatusCreated,
+		},
+		{
+			`{ "title": "test", "options": [] }`,
+			http.StatusBadRequest,
+		},
+		{
+			`{ "title": "test" }`,
+			http.StatusBadRequest,
+		},
+		{
+			`{ "options": "test" }`,
+			http.StatusBadRequest,
+		},
+		{
+			`{ "options": ["test"] }`,
+			http.StatusBadRequest,
+		},
+		{
+			"",
+			http.StatusBadRequest,
+		},
+	}
+
+	for _, tt := range tests {
+		r := httptest.NewRequest("POST", "/api/polls", strings.NewReader(tt.requestBody))
+		w := httptest.NewRecorder()
+		c.handlePollsCreateOne()(w, r)
+		if w.Result().StatusCode != tt.expectedStatus {
+			t.Errorf("expected status to be %v, instead got %v", tt.expectedStatus, w.Result().StatusCode)
 		}
 	}
 }
