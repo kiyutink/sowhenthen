@@ -40,8 +40,7 @@ func main() {
 	}
 	srv := NewServer(mongo.NewStorage(mongoClient))
 	srv.routes()
-	socket := fmt.Sprintf("%v:%v", os.Getenv("HOST"), os.Getenv("PORT"))
-	fmt.Printf("server listening on socket %v\n", socket)
-	err = http.ListenAndServe(socket, srv)
+	fmt.Println("server listening on port", os.Getenv("PORT"))
+	err = http.ListenAndServe(":"+os.Getenv("PORT"), srv)
 	fmt.Println(err)
 }
