@@ -1,13 +1,13 @@
 ## Build
-FROM golang:1.19-alpine as build
+FROM --platform=$BUILDPLATFORM golang:1.19-alpine as build
 
 WORKDIR /app
 
+COPY go.mod go.sum ./
+RUN go mod download
 COPY . .
 
-RUN go build .
-
-CMD [ "./sowhenthen" ]
+RUN GOOS=linux GOARCH=amd64 go build .
 
 
 ## Deploy
