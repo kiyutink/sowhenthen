@@ -84,7 +84,7 @@
             return this.parsed.options;
           },
           async createPoll() {
-            const res = await fetch("//localhost:8001/api/polls", {
+            const res = await fetch("/api/polls", {
               method: "POST",
               body: this.json,
             });
