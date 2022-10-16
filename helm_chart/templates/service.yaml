@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: sowhenthen
+  name: sowhenthen
+spec:
+  selector:
+    app: sowhenthen
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080

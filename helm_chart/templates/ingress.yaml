@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sowhenthen
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: sowhenthen.kiyutink.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sowhenthen
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - sowhenthen.kiyutink.com
+      secretName: sowhenthen-cert
